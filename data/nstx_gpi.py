@@ -7,7 +7,7 @@ class NSTX_GPI(Dataset):
     """Data Handler that creates Bouncing MNIST dataset on the fly."""
 
     def __init__(self, data_path, start_idx=0,end_idx=20000,seq_len=20, image_height=80,image_width=64,norm_to_tanh=False):
-        path = data_root
+        #path = data_root
         self.seq_len = seq_len
         
         self.image_height = image_size 
