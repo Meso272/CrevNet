@@ -94,7 +94,7 @@ opt.optimizer = optim.Adam
 import layers_3d as model
 
 
-frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=opt.image_height,w=opt.image_width)
+frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=int(opt.image_height/8),w=int(opt.image_width/8))
 encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
