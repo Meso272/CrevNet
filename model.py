@@ -256,7 +256,8 @@ def train(x,e):
     print("woshinidebaba1")
     for i in range(1, opt.n_past + opt.n_future):
         h = encoder(x[i - 1], True)
-        print(h)
+        for a in h:
+            print(a.shape)
         h_pred,memo = frame_predictor((h,memo))
         x_pred = encoder(h_pred,False)
         mse +=  (mse_criterion(x_pred, x[i]))
