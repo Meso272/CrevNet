@@ -321,7 +321,7 @@ for epoch in range(opt.niter):
 
 
 
-    if epoch % 10 == 0:
+    if epoch % 5 == 0:
         torch.save({
             'encoder': encoder,
             'frame_predictor': frame_predictor,
