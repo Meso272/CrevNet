@@ -12,23 +12,29 @@ import time
 import pssim.pytorch_ssim as pytorch_ssim
 from skimage.measure import compare_ssim
 from tqdm import trange
-
+from math import log10
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=0.0005, type=float, help='learning rate')
 parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
-parser.add_argument('--batch_size', default=16, type=int, help='batch size')
+parser.add_argument('--batch_size', default=16, type=int, help='batch size')#16 at first
 parser.add_argument('--log_dir', default='logs', help='base directory to save logs')
-parser.add_argument('--model_dir', default='', help='base directory to save logs')
+parser.add_argument('--model_dir', default='', help='base directory to save models')
 parser.add_argument('--name', default='', help='identifier for directory')
 parser.add_argument('--data_root', default='data', help='root directory for data')
 parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
-parser.add_argument('--niter', type=int, default=60, help='number of epochs to train for')
+parser.add_argument('--niter', type=int, default=100, help='number of epochs to train for')
 parser.add_argument('--seed', default=1, type=int, help='manual seed')
 parser.add_argument('--epoch_size', type=int, default=5000, help='epoch size')
-parser.add_argument('--image_width', type=int, default=64, help='the height / width of the input image to network')
+parser.add_argument('--image_height', type=int, default=80, help='the height  of the input image to network')
+parser.add_argument('--image_width', type=int, default=64, help='the height  of the input image to network')
 parser.add_argument('--channels', default=1, type=int)
-parser.add_argument('--dataset', default='smmnist', help='dataset to train with')
+parser.add_argument('--dataset', default='nstxgpi', help='dataset to train with')
+parser.add_argument('--data_path', default='/home/jinyang.liu/lossycompression/NSTX-GPI/nstx_gpi_float_tenth.dat', help='path of data')
+parser.add_argument('--train_start', type=int, default=0, help='train start idx')
+parser.add_argument('--train_end', type=int, default=20000, help='train end idx')
+parser.add_argument('--test_start', type=int, default=21000, help='test start idx')
+parser.add_argument('--test_end', type=int, default=30000, help='test end idx')
 parser.add_argument('--n_past', type=int, default=8, help='number of frames to condition on')
 parser.add_argument('--n_future', type=int, default=10, help='number of frames to predict')
 parser.add_argument('--n_eval', type=int, default=18, help='number of frames to predict at eval time')
@@ -42,20 +48,21 @@ parser.add_argument('--num_digits', type=int, default=2, help='number of digits 
 
 
 opt = parser.parse_args()
+if opt.dataset=="nstxgpi":
+    opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start)//opt.batch_size)
 
 
-
-
-if opt.model_dir != '':
-    saved_model = torch.load('%s/model.pth' % opt.model_dir)
+if opt.model_dir.split(".")[-1]=="pth":
+    saved_model = torch.load( opt.model_dir)
     optimizer = opt.optimizer
-    model_dir = opt.model_dir
     opt = saved_model['opt']
     opt.optimizer = optimizer
-    opt.model_dir = model_dir
-    opt.log_dir = '%s/continued' % opt.log_dir
+    opt.model_dir = os.path.dirname(opt.model_dir)
+    opt.log_dir =  opt.log_dir
 else:
-    name = 'model_mnist=layers_%s=seq_len_%s=batch_size_%s' % (opt.predictor_rnn_layers,opt.n_eval,opt.batch_size)
+    if not os.path.exists(opt.model_dir):
+        os.makedirs(opt.model_dir)
+    name = opt.model_dir
     if opt.dataset == 'smmnist':
         opt.log_dir = '%s/%s-%d/%s' % (opt.log_dir, opt.dataset, opt.num_digits, name)
     else:
@@ -63,6 +70,7 @@ else:
 
 os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
 os.makedirs('%s/plots/' % opt.log_dir, exist_ok=True)
+
 
 
 
@@ -89,7 +97,7 @@ import layers_3d as model
 frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size)
 encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=2,
-                    dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_width, opt.image_width],
+                    dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
                     mult=2)
 
 frame_predictor_optimizer = opt.optimizer(frame_predictor.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -143,6 +151,16 @@ def get_testing_batch():
             batch = data_utils.normalize_data(opt, dtype, sequence)
             yield batch
 
+def psnr(true,pred):
+    mse=F.mse_loss(true,pred)
+    return 20*log10(torch.max(true)-torch.min(pred)-10*log10(mse))
+def mean_psnr(true_batch,pred_batch):
+    batch_size=true_batch.shape[0]
+    pr=0
+    for i in range(batch_size):
+        pr+=psnr(true[i],pred[i])
+    return pr/batch_size
+
 
 testing_batch_generator = get_testing_batch()
 
@@ -153,7 +171,7 @@ def plot(x, epoch,p = False):
     mse = 0
     for s in range(nsample):
         frame_predictor.hidden = frame_predictor.init_hidden()
-        memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_width/8), int(opt.image_width/8)).cuda())
+        memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
         gen_seq[s].append(x[0])
         x_in = x[0]
         for i in range(1, opt.n_eval):
@@ -177,7 +195,15 @@ def plot(x, epoch,p = False):
                 h_pred, memo = frame_predictor((h, memo))
                 x_in =encoder(h_pred,False).detach()
                 gen_seq[s].append(x_in)
+    pr=0
+    count=0
+    for s in range(nsample):
+        for t in range(opt.n_past,opt.n_eval):
+            pr += mean_psnr(gt_seq[t][:,0,2][:,None, :, :],gen_seq[s][t][:,0,2][:,None, :, :])
+            count+=1
+    return pr/count
 
+    '''
     to_plot = []
     gifs = [[] for t in range(opt.n_eval)]
     nrow = min(opt.batch_size, 10)
@@ -212,7 +238,9 @@ def plot(x, epoch,p = False):
 
         fname = '%s/gen/sample_%d.gif' % (opt.log_dir, epoch)
         data_utils.save_gif(fname, gifs)
+    
     return mse / 10.0
+    '''
 
 
 # --------- training funtions ------------------------------------
@@ -224,7 +252,7 @@ def train(x,e):
     frame_predictor.hidden = frame_predictor.init_hidden()
     mse = 0
 
-    memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_width/8), int(opt.image_width/8)).cuda())
+    memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
     for i in range(1, opt.n_past + opt.n_future):
         h = encoder(x[i - 1], True)
         h_pred,memo = frame_predictor((h,memo))
@@ -252,7 +280,7 @@ for epoch in range(opt.niter):
         x = next(training_batch_generator)
         input = []
         for j in range(opt.n_eval):
-            k1 = x[j][:, 0][:,None,None,:,:]
+            k1 = x[j][:, 0][:,None,None,:,:]#only for mnist when there is in fact only one channel 
             k2 = x[j + 1][:, 0][:,None,None,:,:]
             k3 = x[j + 2][:, 0][:,None,None,:,:]
 
@@ -273,18 +301,18 @@ for epoch in range(opt.niter):
             x = next(testing_batch_generator)
             input = []
             for j in range(opt.n_eval):
-                k1 = x[j][:, 0][:, None, None, :, :]
+                k1 = x[j][:, 0][:, None, None, :, :]#only for mnist when there is in fact only one channel 
                 k2 = x[j + 1][:, 0][:, None, None, :, :]
                 k3 = x[j + 2][:, 0][:, None, None, :, :]
 
                 input.append(torch.cat((k1, k2, k3), 2))
             if i == 0:
-                ssim = plot(input, epoch, True)
+                psnr = plot(input, epoch, True)
             else:
-                ssim = plot(input, epoch)
-            eval += ssim
+                psnr = plot(input, epoch)
+            eval += psnr
 
-        print('[%02d] mse loss: %.7f| ssim loss: %.7f(%d)' % (
+        print('[%02d] mse loss: %.7f| psnr: %.7f(%d)' % (
             epoch, epoch_mse / opt.epoch_size,eval/ 100.0, epoch * opt.epoch_size * opt.batch_size))
 
     # save the model
@@ -296,14 +324,14 @@ for epoch in range(opt.niter):
             'encoder': encoder,
             'frame_predictor': frame_predictor,
             'opt': opt},
-            '%s/model_%s.pth' % (opt.log_dir,epoch))
+            '%s/model_%s.pth' % (opt.model_dir,epoch))
 
 
     torch.save({
         'encoder': encoder,
         'frame_predictor': frame_predictor,
         'opt': opt},
-        '%s/model.pth' % opt.log_dir)
+        '%s/last.pth' % opt.model_dir)
 
 
 

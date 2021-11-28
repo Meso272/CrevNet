@@ -85,7 +85,10 @@ def load_dataset(opt):
             train=False,
             data_root=opt.data_root,
             seq_len=opt.max_step)
-
+    elif opt.dataset == 'nstxgpi':
+        from data.nstx_gpi import NSTX_GPI
+        train_data=NSTX_GPI(opt.data_path,opt.train_start,opt.train_end,opt.max_step,opt.image_height,opt.image_width)
+        test_data=NSTX_GPI(opt.data_path,opt.test_start,opt.test_end,opt.max_step,opt.image_height,opt.image_width)
     return train_data, test_data
 
 
