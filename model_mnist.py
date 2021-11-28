@@ -253,6 +253,7 @@ def train(x,e):
     mse = 0
 
     memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
+    print("woshinidebaba1")
     for i in range(1, opt.n_past + opt.n_future):
         h = encoder(x[i - 1], True)
         print(h.shape)
