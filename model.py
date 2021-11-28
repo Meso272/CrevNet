@@ -94,7 +94,7 @@ opt.optimizer = optim.Adam
 import layers_3d as model
 
 
-frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size)
+frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=opt.image_height,w=opt.image_width)
 encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
@@ -253,11 +253,11 @@ def train(x,e):
     mse = 0
 
     memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
-    print("woshinidebaba1")
+    #print("woshinidebaba1")
     for i in range(1, opt.n_past + opt.n_future):
         h = encoder(x[i - 1], True)
         for a in h:
-            print(a.shape)
+            #print(a.shape)
         h_pred,memo = frame_predictor((h,memo))
         x_pred = encoder(h_pred,False)
         mse +=  (mse_criterion(x_pred, x[i]))

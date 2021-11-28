@@ -77,7 +77,7 @@ class autoencoder(nn.Module):
         self.ds = in_shape[2]//2**(nStrides.count(2)+init_ds//2)
         self.init_ds = init_ds
         self.in_ch = in_shape[0] * 2**self.init_ds
-        print(self.in_ch)
+        #print(self.in_ch)
         self.nBlocks = nBlocks
         self.first = True
 
@@ -197,7 +197,7 @@ class STConvLSTMCell(nn.Module):
 
 
 class zig_rev_predictor(nn.Module):
-    def __init__(self, input_size, hidden_size,output_size,n_layers,batch_size,temp =3, w =10,h = 8):
+    def __init__(self, input_size, hidden_size,output_size,n_layers,batch_size,temp =3, h =10,w = 8):
         super(zig_rev_predictor, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -205,8 +205,9 @@ class zig_rev_predictor(nn.Module):
         self.n_layers = n_layers
         self.batch_size = batch_size
         self.temp = temp
-        self.w = w
+        
         self.h = h
+        self.w = w
 
         self.convlstm = nn.ModuleList(
                 [STConvLSTMCell(input_size, hidden_size,hidden_size) if i == 0 else STConvLSTMCell(hidden_size,hidden_size, hidden_size) for i in
@@ -225,8 +226,8 @@ class zig_rev_predictor(nn.Module):
         hidden = []
 
         for i in range(self.n_layers):
-            hidden.append((Variable(torch.zeros(self.batch_size, self.hidden_size,self.temp,self.w,self.h).cuda()),
-                           Variable(torch.zeros(self.batch_size, self.hidden_size,self.temp,self.w,self.h).cuda())))
+            hidden.append((Variable(torch.zeros(self.batch_size, self.hidden_size,self.temp,self.h,self.w).cuda()),
+                           Variable(torch.zeros(self.batch_size, self.hidden_size,self.temp,self.h,self.w).cuda())))
         return hidden
 
     # def copy(self,hidden):
