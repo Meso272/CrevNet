@@ -17,7 +17,7 @@ from math import log10
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=0.0005, type=float, help='learning rate')
 parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
-parser.add_argument('--batch_size', default=16, type=int, help='batch size')#16 at first
+parser.add_argument('--batch_size', default=32, type=int, help='batch size')#16 at first
 parser.add_argument('--log_dir', default='logs', help='base directory to save logs')
 parser.add_argument('--model_dir', default='', help='base directory to save models')
 parser.add_argument('--name', default='', help='identifier for directory')
