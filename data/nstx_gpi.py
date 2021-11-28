@@ -10,7 +10,8 @@ class NSTX_GPI(Dataset):
         #path = data_root
         self.seq_len = seq_len
         
-        self.image_height = image_size 
+        self.image_height = image_height
+        self.image_width=image_width
         
         
         self.channels = 1
