@@ -77,6 +77,7 @@ class autoencoder(nn.Module):
         self.ds = in_shape[2]//2**(nStrides.count(2)+init_ds//2)
         self.init_ds = init_ds
         self.in_ch = in_shape[0] * 2**self.init_ds
+        print(self.in_ch)
         self.nBlocks = nBlocks
         self.first = True
 
@@ -196,7 +197,7 @@ class STConvLSTMCell(nn.Module):
 
 
 class zig_rev_predictor(nn.Module):
-    def __init__(self, input_size, hidden_size,output_size,n_layers,batch_size,temp =3, w =8,h = 8):
+    def __init__(self, input_size, hidden_size,output_size,n_layers,batch_size,temp =3, w =10,h = 8):
         super(zig_rev_predictor, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
