@@ -13,7 +13,7 @@ import pssim.pytorch_ssim as pytorch_ssim
 from skimage.measure import compare_ssim
 from tqdm import trange
 from math import log10
-
+import torch.nn.functional as F
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', default=0.0005, type=float, help='learning rate')
 parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
