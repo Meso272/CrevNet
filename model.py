@@ -161,8 +161,8 @@ def mean_psnr(true_batch,pred_batch):
     pr=0
 
     for i in range(batch_size):
-        print(true_batch.shape)
-        print(pred_batch.shape)
+        #print(true_batch.shape)
+        #print(pred_batch.shape)
         pr+=psnr(true_batch[i],pred_batch[i])
     return pr/batch_size
 
