@@ -80,6 +80,7 @@ if opt.model_dir.split(".")[-1]=="pth":
     saved_model = torch.load( opt.model_dir)
     optimizer = opt.optimizer
     opt = saved_model['opt']
+    opt.train_end=1000
     opt.optimizer = optimizer
     opt.model_dir = os.path.dirname(opt.model_dir)
     opt.log_dir =  opt.log_dir
