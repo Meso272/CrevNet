@@ -32,7 +32,7 @@ parser.add_argument('--channels', default=1, type=int)
 parser.add_argument('--dataset', default='nstxgpi', help='dataset to train with')
 parser.add_argument('--data_path', default='/home/jinyang.liu/lossycompression/NSTX-GPI/nstx_gpi_float_tenth.dat', help='path of data')
 parser.add_argument('--train_start', type=int, default=0, help='train start idx')
-parser.add_argument('--train_end', type=int, default=1000, help='train end idx')
+parser.add_argument('--train_end', type=int, default=20000, help='train end idx')
 parser.add_argument('--test_start', type=int, default=21000, help='test start idx')
 parser.add_argument('--test_end', type=int, default=30000, help='test end idx')
 parser.add_argument('--n_past', type=int, default=8, help='number of frames to condition on')
@@ -82,7 +82,7 @@ if opt.model_dir.split(".")[-1]=="pth":
     opt = saved_model['opt']
     opt.train_end=1000
     opt.optimizer = optimizer
-    opt.model_dir = os.path.dirname(opt.model_dir)
+    #opt.model_dir = os.path.dirname(opt.model_dir)
     opt.log_dir =  opt.log_dir
 else:
     resume=False
