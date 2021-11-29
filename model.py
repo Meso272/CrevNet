@@ -96,7 +96,7 @@ else:
 
 print(opt)
 if resume:
-    start_epoch=saved_model['epoch']
+    start_epoch=30
     frame_predictor=saved_model['frame_predictor']
     encoder=saved_model['encoder']
     frame_predictor_optimizer = opt.optimizer(frame_predictor.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
