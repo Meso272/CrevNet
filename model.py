@@ -90,7 +90,7 @@ else:
 
 print(opt)
 if resume:
-    start_epoch=saved_model['epoch']
+    start_epoch=saved_model['epoch']+1
     frame_predictor=saved_model['frame_predictor']
     encoder=saved_model['encoder']
     frame_predictor_optimizer = saved_model['fp_optimizer']
