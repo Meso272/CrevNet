@@ -32,7 +32,7 @@ parser.add_argument('--channels', default=1, type=int)
 parser.add_argument('--dataset', default='nstxgpi', help='dataset to train with')
 parser.add_argument('--data_path', default='/home/jinyang.liu/lossycompression/NSTX-GPI/nstx_gpi_float_tenth.dat', help='path of data')
 parser.add_argument('--train_start', type=int, default=0, help='train start idx')
-parser.add_argument('--train_end', type=int, default=20000, help='train end idx')
+parser.add_argument('--train_end', type=int, default=1000, help='train end idx')
 parser.add_argument('--test_start', type=int, default=21000, help='test start idx')
 parser.add_argument('--test_end', type=int, default=30000, help='test end idx')
 parser.add_argument('--n_past', type=int, default=8, help='number of frames to condition on')
@@ -52,24 +52,7 @@ if opt.dataset=="nstxgpi":
     opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start)//opt.batch_size)
 
 
-if opt.model_dir.split(".")[-1]=="pth":
-    saved_model = torch.load( opt.model_dir)
-    optimizer = opt.optimizer
-    opt = saved_model['opt']
-    opt.optimizer = optimizer
-    opt.model_dir = os.path.dirname(opt.model_dir)
-    opt.log_dir =  opt.log_dir
-else:
-    if not os.path.exists(opt.model_dir):
-        os.makedirs(opt.model_dir)
-    name = opt.model_dir
-    if opt.dataset == 'smmnist':
-        opt.log_dir = '%s/%s-%d/%s' % (opt.log_dir, opt.dataset, opt.num_digits, name)
-    else:
-        opt.log_dir = '%s/%s/%s' % (opt.log_dir, opt.dataset, name)
 
-os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
-os.makedirs('%s/plots/' % opt.log_dir, exist_ok=True)
 
 
 
@@ -85,28 +68,62 @@ dtype = torch.cuda.FloatTensor
 opt.data_type = 'sequence'
 # ---------------- load the models  ----------------
 
-print(opt)
+
 
 # ---------------- optimizers ----------------
 opt.optimizer = optim.Adam
 
 
 import layers_3d as model
+if opt.model_dir.split(".")[-1]=="pth":
+    resume=True
+    saved_model = torch.load( opt.model_dir)
+    optimizer = opt.optimizer
+    opt = saved_model['opt']
+    opt.optimizer = optimizer
+    opt.model_dir = os.path.dirname(opt.model_dir)
+    opt.log_dir =  opt.log_dir
+else:
+    resume=False
+    if not os.path.exists(opt.model_dir):
+        os.makedirs(opt.model_dir)
+    name = opt.model_dir
+    if opt.dataset == 'smmnist':
+        opt.log_dir = '%s/%s-%d/%s' % (opt.log_dir, opt.dataset, opt.num_digits, name)
+    else:
+        opt.log_dir = '%s/%s/%s' % (opt.log_dir, opt.dataset, name)
 
 
-frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=int(opt.image_height/8),w=int(opt.image_width/8))
-encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
+print(opt)
+if resume:
+    start_epoch=saved_model['epoch']
+    frame_predictor=saved_model['frame_predictor']
+    encoder=saved_model['encoder']
+    frame_predictor_optimizer = opt.optimizer(frame_predictor.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    encoder_optimizer = opt.optimizer(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+
+
+    scheduler1 = torch.optim.lr_scheduler.StepLR(frame_predictor_optimizer, step_size=50, gamma=0.2)
+    scheduler2 = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=50, gamma=0.2)
+else:
+    start_epoch=0
+    frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=int(opt.image_height/8),w=int(opt.image_width/8))
+    encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
                     mult=2)
 
-frame_predictor_optimizer = opt.optimizer(frame_predictor.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-encoder_optimizer = opt.optimizer(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    frame_predictor_optimizer = opt.optimizer(frame_predictor.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    encoder_optimizer = opt.optimizer(encoder.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
 
-scheduler1 = torch.optim.lr_scheduler.StepLR(frame_predictor_optimizer, step_size=50, gamma=0.2)
-scheduler2 = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=50, gamma=0.2)
+    scheduler1 = torch.optim.lr_scheduler.StepLR(frame_predictor_optimizer, step_size=50, gamma=0.2)
+    scheduler2 = torch.optim.lr_scheduler.StepLR(encoder_optimizer, step_size=50, gamma=0.2)
 
+
+
+os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
+os.makedirs('%s/plots/' % opt.log_dir, exist_ok=True)
 
 # --------- loss functions ------------------------------------
 mse_criterion = nn.MSELoss()
@@ -278,7 +295,7 @@ def train(x,e):
 
 
 # --------- training loop ------------------------------------
-for epoch in range(opt.niter):
+for epoch in range(start_epoch,opt.niter):
     frame_predictor.train()
     encoder.train()
     epoch_mse = 0
@@ -330,14 +347,24 @@ for epoch in range(opt.niter):
         torch.save({
             'encoder': encoder,
             'frame_predictor': frame_predictor,
-            'opt': opt},
+            'opt': opt
+            'fp_optimizer':frame_predictor_optimizer
+            'e_optimizer':encoder_optimizer
+            'sche_1':scheduler1
+            'sche_2':scheduler2
+            'epoch':epoch},
             '%s/model_%s.pth' % (opt.model_dir,epoch))
 
 
     torch.save({
         'encoder': encoder,
         'frame_predictor': frame_predictor,
-        'opt': opt},
+        'opt': opt
+        'fp_optimizer':frame_predictor_optimizer
+        'e_optimizer':encoder_optimizer
+        'sche_1':scheduler1
+        'sche_2':scheduler2
+        'epoch':epoch},
         '%s/last.pth' % opt.model_dir)
 
 
