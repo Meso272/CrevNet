@@ -153,6 +153,8 @@ def get_testing_batch():
 
 def psnr(true,pred):
     mse=F.mse_loss(true,pred)
+    r=20*log10(torch.max(true)-torch.min(pred)-10*log10(mse))
+    print(r)
     return 20*log10(torch.max(true)-torch.min(pred)-10*log10(mse))
 def mean_psnr(true_batch,pred_batch):
     batch_size=true_batch.shape[0]
@@ -312,10 +314,10 @@ for epoch in range(opt.niter):
 
                 input.append(torch.cat((k1, k2, k3), 2))
             if i == 0:
-                psnr = plot(input, epoch, True)
+                the_psnr = plot(input, epoch, True)
             else:
-                psnr = plot(input, epoch)
-            eval += psnr
+                the_psnr = plot(input, epoch)
+            eval += the_psnr
 
         print('[%02d] mse loss: %.7f| psnr: %.7f(%d)' % (
             epoch, epoch_mse / opt.epoch_size,eval/ 100.0, epoch * opt.epoch_size * opt.batch_size))
