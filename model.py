@@ -48,13 +48,6 @@ parser.add_argument('--num_digits', type=int, default=2, help='number of digits 
 
 
 opt = parser.parse_args()
-if opt.dataset=="nstxgpi":
-    opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start)//opt.batch_size)
-
-
-
-
-
 
 
 
@@ -125,7 +118,8 @@ else:
 
 os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
 os.makedirs('%s/plots/' % opt.log_dir, exist_ok=True)
-
+if opt.dataset=="nstxgpi":
+    opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start)//opt.batch_size)
 # --------- loss functions ------------------------------------
 mse_criterion = nn.MSELoss()
 
