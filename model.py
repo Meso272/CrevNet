@@ -347,11 +347,11 @@ for epoch in range(start_epoch,opt.niter):
         torch.save({
             'encoder': encoder,
             'frame_predictor': frame_predictor,
-            'opt': opt
-            'fp_optimizer':frame_predictor_optimizer
-            'e_optimizer':encoder_optimizer
-            'sche_1':scheduler1
-            'sche_2':scheduler2
+            'opt': opt,
+            'fp_optimizer':frame_predictor_optimizer,
+            'e_optimizer':encoder_optimizer,
+            'sche_1':scheduler1,
+            'sche_2':scheduler2,
             'epoch':epoch},
             '%s/model_%s.pth' % (opt.model_dir,epoch))
 
@@ -359,11 +359,11 @@ for epoch in range(start_epoch,opt.niter):
     torch.save({
         'encoder': encoder,
         'frame_predictor': frame_predictor,
-        'opt': opt
-        'fp_optimizer':frame_predictor_optimizer
-        'e_optimizer':encoder_optimizer
-        'sche_1':scheduler1
-        'sche_2':scheduler2
+        'opt': opt,
+        'fp_optimizer':frame_predictor_optimizer,
+        'e_optimizer':encoder_optimizer,
+        'sche_1':scheduler1,
+        'sche_2':scheduler2,
         'epoch':epoch},
         '%s/last.pth' % opt.model_dir)
 
