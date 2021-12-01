@@ -20,6 +20,7 @@ parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for 
 parser.add_argument('--batch_size', default=32, type=int, help='batch size')#16 at first
 parser.add_argument('--log_dir', default='logs', help='base directory to save logs')
 parser.add_argument('--model_dir', default='', help='base directory to save models')
+parser.add_argument('--save_interval', default=5, type=int, help='save ckpt interval')
 parser.add_argument('--name', default='', help='identifier for directory')
 parser.add_argument('--data_root', default='data', help='root directory for data')
 parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
@@ -99,7 +100,7 @@ if resume:
     scheduler1 = saved_model['sche_1']
     scheduler2 = saved_model['sche_2']
 else:
-    start_epoch=0
+    start_epoch=1
     frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,h=int(opt.image_height/8),w=int(opt.image_width/8))
     encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=2,
@@ -289,7 +290,7 @@ def train(x,e):
 
 
 # --------- training loop ------------------------------------
-for epoch in range(start_epoch,opt.niter):
+for epoch in range(start_epoch,opt.niter+1):
     frame_predictor.train()
     encoder.train()
     epoch_mse = 0
@@ -337,7 +338,7 @@ for epoch in range(start_epoch,opt.niter):
 
 
 
-    if epoch % 5 == 0:
+    if epoch % opt.save_interval == 0:
         torch.save({
             'encoder': encoder,
             'frame_predictor': frame_predictor,
