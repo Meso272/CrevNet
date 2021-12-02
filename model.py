@@ -101,9 +101,9 @@ if resume:
     scheduler2 = saved_model['sche_2']
 else:
     start_epoch=1
-    frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
+    frame_predictor = model.zig_rev_predictor(32,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
     encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
-                    nChannels=None, init_ds=2,
+                    nChannels=[2,8,32], init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
                     mult=2)
 
