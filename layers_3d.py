@@ -49,9 +49,17 @@ class irevnet_block(nn.Module):
         x1 = x[0]
         x2 = x[1]
         Fx2 = self.bottleneck_block(x2)
+        print(x1.shape)
+        print(x2.shape)
+        print(Fx2.shape)
+        print
         if self.stride == 2:
             x1 = self.psi.forward(x1)
             x2 = self.psi.forward(x2)
+            print("strided")
+            print(x1.shape)
+            print(x2.shape)
+            print("strided")
         y1 = Fx2 + x1
         return (x2, y1)
 
@@ -86,9 +94,8 @@ class autoencoder(nn.Module):
         if not nChannels:
             nChannels = [self.in_ch//2, self.in_ch//2 * 4,
                          self.in_ch//2 * 4**2, self.in_ch//2 * 4**3]
-        else:
-            nChannels[0]=self.in_ch//2
-        print(nChannels)
+        
+        #print(nChannels)
         self.init_psi = psi(self.init_ds)
         self.stack = self.irevnet_stack(irevnet_block, nChannels, nBlocks,
                                         nStrides, dropout_rate=dropout_rate,
@@ -101,15 +108,15 @@ class autoencoder(nn.Module):
         block_list = nn.ModuleList()
         strides = []
         channels = []
-        print(nChannels)
-        print(nBlocks)
-        print(nStrides)
+        #print(nChannels)
+        #print(nBlocks)
+        #print(nStrides)
         for channel, depth, stride in zip(nChannels, nBlocks, nStrides):
             print(channel,depth,stride)
             strides = strides + ([stride] + [1]*(depth-1))
             channels = channels + ([channel]*depth)
-        print(strides)
-        print(channels)
+       # print(strides)
+        #print(channels)
         for channel, stride in zip(channels, strides):
             block_list.append(_block(in_ch, channel, stride,
                                      first=self.first,
