@@ -100,6 +100,7 @@ class autoencoder(nn.Module):
         strides = []
         channels = []
         print(nChannels)
+        print(nBlocks)
         for channel, depth, stride in zip(nChannels, nBlocks, nStrides):
             strides = strides + ([stride] + [1]*(depth-1))
             channels = channels + ([channel]*depth)
