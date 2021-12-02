@@ -49,17 +49,11 @@ class irevnet_block(nn.Module):
         x1 = x[0]
         x2 = x[1]
         Fx2 = self.bottleneck_block(x2)
-        print("x1",x1.shape)
-        print("x2",x2.shape)
-        print("fx2",Fx2.shape)
-        print
+        
         if self.stride == 2:
             x1 = self.psi.forward(x1)
             x2 = self.psi.forward(x2)
-            print("strided")
-            print("x1",x1.shape)
-            print("x2",x2.shape)
-            print("strided")
+            
         y1 = Fx2 + x1
         return (x2, y1)
 
