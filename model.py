@@ -30,6 +30,8 @@ parser.add_argument('--epoch_size', type=int, default=5000, help='epoch size')
 parser.add_argument('--image_height', type=int, default=80, help='the height  of the input image to network')
 parser.add_argument('--image_width', type=int, default=64, help='the height  of the input image to network')
 parser.add_argument('--channels', default=1, type=int)
+parser.add_argument('--blocks','-bs',type=int,nargs="+",default=[4,5,3])
+parser.add_argument('--strides','-ss',type=int,nargs="+",default=[1,2,2])
 parser.add_argument('--dataset', default='nstxgpi', help='dataset to train with')
 parser.add_argument('--data_path', default='/home/jinyang.liu/lossycompression/NSTX-GPI/nstx_gpi_float_tenth.dat', help='path of data')
 parser.add_argument('--train_start', type=int, default=0, help='train start idx')
@@ -101,9 +103,9 @@ if resume:
     scheduler2 = saved_model['sche_2']
 else:
     start_epoch=1
-    frame_predictor = model.zig_rev_predictor(32,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
+    frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
     encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
-                    nChannels=[2,8,32], init_ds=2,
+                    nChannels=None, init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
                     mult=2)
 
