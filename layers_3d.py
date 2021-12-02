@@ -119,10 +119,14 @@ class autoencoder(nn.Module):
             if self.init_ds != 0:
                 x = self.init_psi.forward(input)
             out = (x[:, :n, :, :, :], x[:, n:, :, :, :])
-
+            for r in out:
+                print(out.shape)
             for block in self.stack:
 
                 out = block.forward(out)
+                for r in out:
+                    print(out.shape)
+            print("zun")
             x = out
         else:
             out = input
