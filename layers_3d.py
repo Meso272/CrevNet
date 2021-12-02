@@ -115,7 +115,7 @@ class autoencoder(nn.Module):
         #print(nBlocks)
         #print(nStrides)
         for channel, depth, stride in zip(nChannels, nBlocks, nStrides):
-            print(channel,depth,stride)
+            #print(channel,depth,stride)
             strides = strides + ([stride] + [1]*(depth-1))
             channels = channels + ([channel]*depth)
        # print(strides)
@@ -136,14 +136,11 @@ class autoencoder(nn.Module):
             if self.init_ds != 0:
                 x = self.init_psi.forward(input)
             out = (x[:, :n, :, :, :], x[:, n:, :, :, :])
-            for r in out:
-                print(r.shape)
+           
             for block in self.stack:
 
                 out = block.forward(out)
-                for r in out:
-                    print(r.shape)
-            print("zun")
+               
             x = out
         else:
             out = input
@@ -191,9 +188,9 @@ class STConvLSTMCell(nn.Module):
             )
 
         prev_hidden, prev_cell = prev_state
-        print(input_.shape)
-        print(prev_hidden.shape)
-        print(prev_cell.shape)
+        #print(input_.shape)
+        #print(prev_hidden.shape)
+        #print(prev_cell.shape)
         # data size is [batch, channel, height, width]
         stacked_inputs = torch.cat((input_, prev_hidden, prev_cell), 1)
 
