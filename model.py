@@ -218,7 +218,7 @@ def plot(x, epoch,p = False):
     count=0
     for s in range(nsample):
         for t in range(opt.n_past,opt.n_eval):
-            pr += mean_psnr(gt_seq[t][:,0,2][:,None, :, :],gen_seq[s][t][:,0,2][:,None, :, :])
+            pr += mean_psnr(gt_seq[t][:,0,2][:,None, :, :]*4070,gen_seq[s][t][:,0,2][:,None, :, :]*4070)
             count+=1
     return pr/count
 
