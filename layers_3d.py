@@ -244,7 +244,7 @@ class zig_rev_predictor(nn.Module):
         x1, x2 = input_
             # self.copy(self.hidden)
         for i in range(self.n_layers):
-            print(self.hidden[i].shape)
+            #print(self.hidden[i].shape)
             out = self.convlstm[i]((x1,memo), self.hidden[i])
             self.hidden[i] = out[0]
             memo = out[1]
