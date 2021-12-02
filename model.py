@@ -103,7 +103,7 @@ else:
     start_epoch=1
     frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
     encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
-                    nChannels=None, init_ds=2,
+                    nChannels=[opt.rnn_size//4,opt.rnn_size//2,opt.rnn_size], init_ds=2,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
                     mult=2)
 
