@@ -99,10 +99,12 @@ class autoencoder(nn.Module):
         block_list = nn.ModuleList()
         strides = []
         channels = []
+        print(nChannels)
         for channel, depth, stride in zip(nChannels, nBlocks, nStrides):
             strides = strides + ([stride] + [1]*(depth-1))
             channels = channels + ([channel]*depth)
-
+        print(strides)
+        print(channels)
         for channel, stride in zip(channels, strides):
             block_list.append(_block(in_ch, channel, stride,
                                      first=self.first,
