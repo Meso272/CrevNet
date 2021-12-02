@@ -170,7 +170,9 @@ class STConvLSTMCell(nn.Module):
             )
 
         prev_hidden, prev_cell = prev_state
-
+        print(input_.shape)
+        print(prev_hidden.shape)
+        print(prev_cell.shape)
         # data size is [batch, channel, height, width]
         stacked_inputs = torch.cat((input_, prev_hidden, prev_cell), 1)
 
