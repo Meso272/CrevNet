@@ -86,6 +86,8 @@ class autoencoder(nn.Module):
         if not nChannels:
             nChannels = [self.in_ch//2, self.in_ch//2 * 4,
                          self.in_ch//2 * 4**2, self.in_ch//2 * 4**3]
+        else:
+            nChannels[0]=self.in_ch//2
         print(nChannels)
         self.init_psi = psi(self.init_ds)
         self.stack = self.irevnet_stack(irevnet_block, nChannels, nBlocks,
