@@ -92,8 +92,11 @@ class autoencoder(nn.Module):
         # print('')
         # print(' == Building iRevNet %d == ' % (sum(nBlocks) * 3))
         if not nChannels:
-            nChannels = [self.in_ch//2, self.in_ch//2 * 4,
-                         self.in_ch//2 * 4**2, self.in_ch//2 * 4**3]
+            nChannels = []
+            cn=self.in_ch//2
+            for i in range(len(nBlocks)):
+                nChannels.append(cn)
+                cn*=4
         
         #print(nChannels)
         self.init_psi = psi(self.init_ds)
@@ -267,6 +270,8 @@ class zig_rev_predictor(nn.Module):
             self.hidden[i] = out[0]
             memo = out[1]
             g = self.att[i](self.hidden[i][0])
+      
+
             x2 = (1 - g) * x2 + g * self.hidden[i][0]
             x1, x2 = x2, x1
 
