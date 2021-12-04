@@ -22,7 +22,7 @@ class HEAT(Dataset):
         for i in range(start_idx,end_idx):
             filename="%d.dat" % i
             filepath=os.path.join(data_path,filename)
-            self.data[i-start_idx][0]=np.fromfile(filepath,dtype=np.float32)
+            self.data[i-start_idx][0]=np.fromfile(filepath,dtype=np.float32).reshape((args.input_size[0],args.input_size[1]))
         self.data=(self.data-gmin)/(gmax-gmin)
         if norm_to_tanh:
             self.data=self.data*2-1
