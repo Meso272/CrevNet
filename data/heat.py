@@ -2,11 +2,12 @@ import socket
 import numpy as np
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset
-class NSTX_GPI(Dataset):
+import os
+class HEAT(Dataset):
     
     """Data Handler that creates Bouncing MNIST dataset on the fly."""
 
-    def __init__(self, data_path, start_idx=0,end_idx=20000,seq_len=20, image_height=80,image_width=64,gmax=4070,gmin=0,norm_to_tanh=False):
+    def __init__(self, data_path, start_idx=0,end_idx=6000,seq_len=20, image_height=64,image_width=64,gmax=100,gmin=0,norm_to_tanh=False):
         #path = data_root
         self.seq_len = seq_len
         
@@ -16,7 +17,12 @@ class NSTX_GPI(Dataset):
         
         self.channels = 1
  
-        self.data =np.fromfile(data_path,dtype=np.float32).reshape((-1,1,image_height,image_width))[start_idx:end_idx]
+        #self.data =np.fromfile(data_path,dtype=np.float32).reshape((-1,1,image_height,image_width))[start_idx:end_idx]
+        self.data=np.zeros((end_idx-start_idx,1,args.input_size[0],args.input_size[1]))
+        for i in range(start_idx,end_idx):
+            filename="%d.dat" % i
+            filepath=os.path.join(data_path,filename)
+            self.data[i-start_idx][0]=np.fromfile(filepath,dtype=np.float32)
         self.data=(self.data-gmin)/(gmax-gmin)
         if norm_to_tanh:
             self.data=self.data*2-1

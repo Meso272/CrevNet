@@ -22,6 +22,8 @@ parser.add_argument('--log_dir', default='logs', help='base directory to save lo
 parser.add_argument('--model_dir', default='', help='base directory to save models')
 parser.add_argument('--save_interval', default=5, type=int, help='save ckpt interval')
 parser.add_argument('--name', default='', help='identifier for directory')
+parser.add_argument('--data_max', default=4070, type=float, help='data maximum')
+parser.add_argument('--data_min', default=0, type=float, help='data minimum')
 parser.add_argument('--data_root', default='data', help='root directory for data')
 parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
 parser.add_argument('--niter', type=int, default=100, help='number of epochs to train for')
@@ -120,8 +122,8 @@ else:
 
 os.makedirs('%s/gen/' % opt.log_dir, exist_ok=True)
 os.makedirs('%s/plots/' % opt.log_dir, exist_ok=True)
-if opt.dataset=="nstxgpi":
-    opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start)//opt.batch_size)
+if opt.dataset=="nstxgpi" or opt.dataset=="heat":
+    opt.epoch_size=min(opt.epoch_size,(opt.train_end-opt.train_start-opt.max_step+1)//opt.batch_size)
 # --------- loss functions ------------------------------------
 mse_criterion = nn.MSELoss()
 
@@ -218,7 +220,11 @@ def plot(x, epoch,p = False):
     count=0
     for s in range(nsample):
         for t in range(opt.n_past,opt.n_eval):
-            pr += mean_psnr(gt_seq[t][:,0,2][:,None, :, :]*4070,gen_seq[s][t][:,0,2][:,None, :, :]*4070)
+            tar_seq=gt_seq[t][:,0,2][:,None, :, :]
+            pred_seq=gen_seq[s][t][:,0,2][:,None, :, :]
+            tar_seq=tar_seq*(opt.data_max-opt.data_min)+opt.data_min
+            pred_seq=pred_seq*(opt.data_max-opt.data_min)+opt.data_min
+            pr += mean_psnr(tar_seq,pred_seq)
             count+=1
     return pr/count
 
