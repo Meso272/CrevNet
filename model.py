@@ -169,6 +169,7 @@ def get_testing_batch():
 
 def psnr(true,pred):
     mse=F.mse_loss(true,pred)
+    print(mse)
     r=20*log10(torch.max(true)-torch.min(true))-10*log10(mse)
     #print(r)
     return r
