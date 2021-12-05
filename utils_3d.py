@@ -25,10 +25,10 @@ class psi(nn.Module):
     def inverse(self, input):
         output = input.permute(0, 2, 3, 4, 1)
         (batch_size, temp, d_height, d_width, d_depth) = output.size()
-        s_depth = int(d_depth / 4)
-        s_width = int(d_width * 2)
-        s_height = int(d_height * 2)
-        t_1 = output.contiguous().view(batch_size, temp, d_height, d_width, 4, s_depth)
+        s_depth = int(d_depth / self.block_size_sq)
+        s_width = int(d_width * self.block_size)
+        s_height = int(d_height * self.block_size)
+        t_1 = output.contiguous().view(batch_size, temp, d_height, d_width, self.block_size_sq, s_depth)#4
         spl = t_1.split(2, 4)
         stack = [t_t.contiguous().view(batch_size, temp, d_height, s_width, s_depth) for t_t in spl]
         output = torch.stack(stack, 0).transpose(0, 1).transpose(1, 2).permute(0, 1, 3, 2, 4, 5).contiguous().view(batch_size, temp, s_height, s_width, s_depth)
