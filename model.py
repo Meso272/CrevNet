@@ -295,8 +295,8 @@ def train(x,e):
         
         h_pred,memo = frame_predictor((h,memo))
         x_pred = encoder(h_pred,False)
-        print(x_pred.shape)
-        print(x[i].shape)
+        #print(x_pred.shape)
+        #print(x[i].shape)
         mse +=  (mse_criterion(x_pred, x[i]))
 
 
