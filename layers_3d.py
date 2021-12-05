@@ -129,7 +129,7 @@ class autoencoder(nn.Module):
             n = self.in_ch // 2
             if self.init_ds != 0:
                 x = self.init_psi.forward(input)
-            print(x.shape)
+            #print(x.shape)
             out = (x[:, :n, :, :, :], x[:, n:, :, :, :])
            
             for block in self.stack:

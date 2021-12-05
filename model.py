@@ -66,6 +66,13 @@ torch.manual_seed(opt.seed)
 torch.cuda.manual_seed_all(opt.seed)
 dtype = torch.cuda.FloatTensor
 opt.data_type = 'sequence'
+
+reduce_count=0
+for ss in opt.strides:
+    if ss==2:
+        reduce_count+=1
+
+reduce_factor=opt.init_ds*(2**reduce_count)
 # ---------------- load the models  ----------------
 
 
@@ -107,7 +114,7 @@ if resume:
     scheduler2 = saved_model['sche_2']
 else:
     start_epoch=1
-    frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/8),w=int(opt.image_width/8))
+    frame_predictor = model.zig_rev_predictor(opt.rnn_size,  opt.rnn_size, opt.rnn_size, opt.predictor_rnn_layers,opt.batch_size,temp=3,h=int(opt.image_height/reduce_factor),w=int(opt.image_width/reduce_factor))
     encoder = model.autoencoder(nBlocks=[4,5,3], nStrides=[1, 2, 2],
                     nChannels=None, init_ds=opt.init_ds,
                     dropout_rate=0., affineBN=True, in_shape=[opt.channels, opt.image_height, opt.image_width],
@@ -196,7 +203,7 @@ def plot(x, epoch,p = False):
     mse = 0
     for s in range(nsample):
         frame_predictor.hidden = frame_predictor.init_hidden()
-        memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
+        memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/reduce_factor), int(opt.image_width/reduce_factor)).cuda())
         gen_seq[s].append(x[0])
         x_in = x[0]
         for i in range(1, opt.n_eval):
@@ -281,7 +288,7 @@ def train(x,e):
     frame_predictor.hidden = frame_predictor.init_hidden()
     mse = 0
 
-    memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/8), int(opt.image_width/8)).cuda())
+    memo = Variable(torch.zeros(opt.batch_size, opt.rnn_size ,3, int(opt.image_height/reduce_factor), int(opt.image_width/reduce_factor)).cuda())
     #print("woshinidebaba1")
     for i in range(1, opt.n_past + opt.n_future):
         h = encoder(x[i - 1], True)
